@@ -1,20 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Alert, Switch, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useQuery } from '../../db/hooks';
-import { deleteRecurring, getRecurring, listCategories, listTransactions, saveRecurring } from '../../db/repo';
+import {
+  deleteRecurring, getRecurring, listCategories, listTransactions, saveRecurring, Category, Recurring, Transaction,
+} from '../../db/repo';
 import {
   Body, Button, Card, Divider, Field, IconName, Label, ListItem, Money, Row, Screen, Segmented, Title,
 } from '../../components/ui';
 import { CategoryPicker } from '../../components/pickers';
-import { formatDate, isValidISO, today } from '../../lib/dates';
+import { addDays, formatDate, isValidISO, today } from '../../lib/dates';
 import { parseAmount } from '../../lib/money';
 import { Frequency, FREQUENCIES, FREQUENCY_LABEL, nextDueDate, occurrencesBetween } from '../../lib/recurring';
-import { addDays } from '../../lib/dates';
 
 export default function EditRecurring() {
-  const db = useSQLiteContext();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const billId = id ? Number(id) : undefined;
   const { data } = useQuery(async (d) => {
@@ -23,34 +23,24 @@ export default function EditRecurring() {
     const history = bill?.merchant_key ? await listTransactions(d, { merchantKey: bill.merchant_key, limit: 12 }) : [];
     return { bill, categories, history };
   }, [billId]);
-
-  const [name, setName] = useState('');
-  const [amount, setAmount] = useState('');
-  const [frequency, setFrequency] = useState<Frequency>('monthly');
-  const [date, setDate] = useState(today());
-  const [categoryId, setCategoryId] = useState<number | null>(null);
-  const [active, setActive] = useState(true);
-  const [notes, setNotes] = useState('');
-  const [picking, setPicking] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    if (!data || loaded) return;
-    if (data.bill) {
-      const b = data.bill;
-      setName(b.name);
-      setAmount(String(b.amount));
-      setFrequency(b.frequency);
-      setDate(nextDueDate(b.anchor_date, b.frequency));
-      setCategoryId(b.category_id);
-      setActive(!!b.active);
-      setNotes(b.notes);
-    }
-    setLoaded(true);
-  }, [data, loaded]);
-
   if (!data) return <Screen>{null}</Screen>;
-  const category = data.categories.find((c) => c.id === categoryId);
+  return <BillForm key={billId ?? 'new'} billId={billId} {...data} />;
+}
+
+function BillForm({
+  billId, bill, categories, history,
+}: { billId?: number; bill: Recurring | null; categories: Category[]; history: Transaction[] }) {
+  const db = useSQLiteContext();
+  const [name, setName] = useState(bill?.name ?? '');
+  const [amount, setAmount] = useState(bill ? String(bill.amount) : '');
+  const [frequency, setFrequency] = useState<Frequency>(bill?.frequency ?? 'monthly');
+  const [date, setDate] = useState(bill ? nextDueDate(bill.anchor_date, bill.frequency) : today());
+  const [categoryId, setCategoryId] = useState<number | null>(bill?.category_id ?? null);
+  const [active, setActive] = useState(bill ? !!bill.active : true);
+  const [notes, setNotes] = useState(bill?.notes ?? '');
+  const [picking, setPicking] = useState(false);
+
+  const category = categories.find((c) => c.id === categoryId);
 
   const save = async () => {
     const n = parseAmount(amount);
@@ -64,7 +54,7 @@ export default function EditRecurring() {
       frequency,
       anchor_date: date,
       category_id: categoryId,
-      merchant_key: data.bill?.merchant_key ?? null,
+      merchant_key: bill?.merchant_key ?? null,
       notes,
       active: active ? 1 : 0,
     });
@@ -124,10 +114,10 @@ export default function EditRecurring() {
           }
         />
       )}
-      {data.history.length > 0 && (
+      {history.length > 0 && (
         <Card>
           <Title>Payment history</Title>
-          {data.history.map((t, i) => (
+          {history.map((t, i) => (
             <View key={t.id}>
               {i > 0 && <Divider />}
               <ListItem title={formatDate(t.date, { month: 'short', day: 'numeric', year: 'numeric' })} subtitle={t.account_name} right={<Money amount={t.amount} />} />

@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { migrate } from '../db/schema';
+import { ReminderSync } from '../notifications/ReminderSync';
 
 export default function RootLayout() {
   const scheme = useColorScheme();
@@ -11,6 +12,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ThemeProvider value={scheme === 'dark' ? DarkTheme : DefaultTheme}>
         <SQLiteProvider databaseName="budget.db" onInit={migrate}>
+          <ReminderSync />
           <Stack screenOptions={{ headerBackTitle: 'Back' }}>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="transaction/[id]" options={{ title: 'Transaction' }} />

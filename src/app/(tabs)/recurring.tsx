@@ -92,7 +92,7 @@ export default function RecurringScreen() {
               />
             </View>
           ))}
-          <Label style={{ marginTop: 6 }}>Paused bills don't count toward totals.</Label>
+          <Label style={{ marginTop: 6 }}>Paused bills don’t count toward totals.</Label>
         </Card>
       )}
     </Screen>

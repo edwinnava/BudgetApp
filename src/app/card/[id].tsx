@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Alert, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
@@ -43,20 +43,6 @@ export default function CardDetail() {
   const [editing, setEditing] = useState(false);
   const [logging, setLogging] = useState(false);
 
-  useEffect(() => {
-    if (!data?.card || editing) return;
-    const k = data.card;
-    setForm({
-      statement: str(k.statement_balance),
-      statementDay: str(k.statement_day),
-      dueDay: str(k.due_day),
-      min: str(k.min_payment),
-      apr: str(k.apr),
-      limit: str(k.credit_limit),
-      balance: str(k.owed),
-    });
-  }, [data, editing]);
-
   if (data === undefined) return <Screen>{null}</Screen>;
   if (data === null) return <Screen><Label>Card not found.</Label></Screen>;
   const { card, payments, txns, closeDate, estimatedStatement } = data;
@@ -68,6 +54,18 @@ export default function CardDetail() {
   const statementLeft = card.statement_balance != null ? Math.max(0, card.statement_balance - paidThisCycle) : null;
   const apr = card.apr ?? 0;
   const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const startEditing = () => {
+    setForm({
+      statement: str(card.statement_balance),
+      statementDay: str(card.statement_day),
+      dueDay: str(card.due_day),
+      min: str(card.min_payment),
+      apr: str(card.apr),
+      limit: str(card.credit_limit),
+      balance: str(card.owed),
+    });
+    setEditing(true);
+  };
 
   const save = async () => {
     await saveCardDetails(db, {
@@ -155,7 +153,7 @@ export default function CardDetail() {
       </Card>
 
       <Card>
-        <Title right={!editing && <Button title="Edit" variant="ghost" onPress={() => setEditing(true)} />}>Card details</Title>
+        <Title right={!editing && <Button title="Edit" variant="ghost" onPress={startEditing} />}>Card details</Title>
         {editing ? (
           <>
             {card.source === 'manual' && (

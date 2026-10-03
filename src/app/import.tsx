@@ -58,7 +58,7 @@ export default function ImportCsv() {
     <Screen>
       <Card>
         <Label style={{ marginBottom: 10 }}>
-          Download transactions as CSV from your bank's website, then pick the file. Re-importing the same file won't create duplicates.
+          Download transactions as CSV from your bank’s website, then pick the file. Re-importing the same file won’t create duplicates.
         </Label>
         <Button title={fileName ? `Change file (${fileName})` : 'Choose CSV file'} icon="document" variant="secondary" onPress={pick} />
       </Card>

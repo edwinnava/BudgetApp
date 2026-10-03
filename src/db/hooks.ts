@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useSQLiteContext, type SQLiteDatabase } from 'expo-sqlite';
 import { useFocusEffect } from 'expo-router';
 import { subscribe } from './events';
@@ -11,9 +11,13 @@ export function useQuery<T>(fn: (db: SQLiteDatabase) => Promise<T>, deps: unknow
   const db = useSQLiteContext();
   const [data, setData] = useState<T | undefined>(undefined);
   const [error, setError] = useState<Error | null>(null);
+  // Always call the latest `fn` without making it a dependency (callers pass inline lambdas).
   const fnRef = useRef(fn);
-  fnRef.current = fn;
+  useLayoutEffect(() => {
+    fnRef.current = fn;
+  });
   const seq = useRef(0);
+  const depKey = JSON.stringify(deps);
 
   const run = useCallback(() => {
     const id = ++seq.current;
@@ -21,8 +25,8 @@ export function useQuery<T>(fn: (db: SQLiteDatabase) => Promise<T>, deps: unknow
       .current(db)
       .then((d) => id === seq.current && (setData(d), setError(null)))
       .catch((e) => id === seq.current && setError(e));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [db, ...deps]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- re-create when the caller's deps change
+  }, [db, depKey]);
 
   useEffect(() => {
     run();

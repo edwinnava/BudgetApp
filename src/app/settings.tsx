@@ -8,6 +8,7 @@ import { connectSimpleFin, disconnectSimpleFin } from '../sync/ingest';
 import { useSync } from '../sync/useSync';
 import { notifyChange } from '../db/events';
 import { loadDemoData } from '../db/demo';
+import { ReminderSettingsCard } from '../components/ReminderSettingsCard';
 import { Body, Button, Card, Divider, Field, Label, ListItem, Money, Screen, Title } from '../components/ui';
 import { useColors } from '../components/theme';
 
@@ -42,7 +43,7 @@ export default function Settings() {
             <Body>Connected ✓</Body>
             <Label style={{ marginBottom: 10 }}>
               {data?.lastSync ? `Last synced ${new Date(data.lastSync).toLocaleString()}` : 'Not synced yet'}. SimpleFIN refreshes
-              about once a day; syncing more often won't show newer data.
+              about once a day; syncing more often won’t show newer data.
             </Label>
             <Button title="Sync now" icon="sync" loading={syncing} onPress={sync} />
             <Button
@@ -101,6 +102,8 @@ export default function Settings() {
           </View>
         ))}
       </Card>
+
+      <ReminderSettingsCard />
 
       <Card>
         <Title>Import</Title>

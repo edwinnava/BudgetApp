@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Alert, Switch, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useQuery } from '../../db/hooks';
-import { ACCOUNT_TYPES, AccountType, deleteAccount, getAccount, updateAccount } from '../../db/repo';
+import { ACCOUNT_TYPES, Account, AccountType, deleteAccount, getAccount, updateAccount } from '../../db/repo';
 import { backfillCardPayments } from '../../sync/ingest';
 import { Body, Button, Card, Field, Label, Row, Screen, Segmented } from '../../components/ui';
 import { parseAmount } from '../../lib/money';
@@ -13,21 +13,17 @@ const TYPE_LABEL: Record<AccountType, string> = {
 };
 
 export default function AccountDetail() {
-  const db = useSQLiteContext();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: account } = useQuery((d) => getAccount(d, id), [id]);
-  const [name, setName] = useState('');
-  const [balance, setBalance] = useState('');
-
-  useEffect(() => {
-    if (account) {
-      setName(account.name);
-      setBalance(String(account.balance));
-    }
-  }, [account]);
-
   if (account === undefined) return <Screen>{null}</Screen>;
   if (!account) return <Screen><Label>Account not found.</Label></Screen>;
+  return <AccountForm key={account.id} account={account} />;
+}
+
+function AccountForm({ account }: { account: Account }) {
+  const db = useSQLiteContext();
+  const [name, setName] = useState(account.name);
+  const [balance, setBalance] = useState(String(account.balance));
 
   const changeType = async (type: AccountType) => {
     await updateAccount(db, account.id, { type });

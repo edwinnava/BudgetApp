@@ -3,32 +3,21 @@ import { View } from 'react-native';
 import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useQuery } from '../../db/hooks';
-import { cardPaymentsByMonth, getSetting, listCardPayments, listCards, setSetting, Card as CardRow } from '../../db/repo';
+import { cardPaymentsByMonth, setSetting, Card as CardRow } from '../../db/repo';
+import { loadCardPlan } from '../../db/cardPlan';
 import {
   Body, Button, Card, Divider, Empty, Label, ListItem, Money, ProgressBar, PromptModal, Row, Screen, Segmented, Stat, Title,
 } from '../../components/ui';
 import { useColors } from '../../components/theme';
 import { addMonths, formatDate, formatMonth, monthKey, today } from '../../lib/dates';
 import { formatMoney, parseAmount } from '../../lib/money';
-import { allocatePayments, simulatePayoff, STRATEGY_INFO, Strategy, minimumFor } from '../../lib/payoff';
-import { ASSUMED_APR, cycleStart, daysUntil, nextDue, toDebtCard, utilization } from '../../lib/cards';
+import { simulatePayoff, STRATEGY_INFO, Strategy } from '../../lib/payoff';
+import { ASSUMED_APR, daysUntil, nextDue, utilization } from '../../lib/cards';
 
-async function load(db: Parameters<typeof listCards>[0]) {
-  const cards = await listCards(db);
-  const earliest = cards.reduce((m, k) => {
-    const s = cycleStart(k.statement_day);
-    return s < m ? s : m;
-  }, `${monthKey(today())}-01`);
-  const payments = await listCardPayments(db, undefined, earliest);
-  const paidThisCycle = new Map<string, number>();
-  for (const k of cards) {
-    const start = cycleStart(k.statement_day);
-    paidThisCycle.set(k.id, payments.filter((p) => p.card_account_id === k.id && p.date >= start).reduce((s, p) => s + p.amount, 0));
-  }
+async function load(db: Parameters<typeof loadCardPlan>[0]) {
+  const plan = await loadCardPlan(db);
   const history = await cardPaymentsByMonth(db, addMonths(`${monthKey(today())}-01`, -5));
-  const budget = await getSetting(db, 'payoff_budget');
-  const strategy = ((await getSetting(db, 'payoff_strategy')) ?? 'avalanche') as Strategy;
-  return { cards, paidThisCycle, history, budget: budget ? Number(budget) : null, strategy };
+  return { ...plan, history };
 }
 
 function monthsLabel(n: number) {
@@ -44,7 +33,7 @@ export default function Cards() {
   const [editingBudget, setEditingBudget] = useState(false);
   if (!data) return <Screen>{null}</Screen>;
 
-  const { cards, paidThisCycle, history, strategy } = data;
+  const { cards, paidThisCycle, history, strategy, debts, totalMin, budget, plan } = data;
   if (cards.length === 0) {
     return (
       <Screen>
@@ -58,13 +47,9 @@ export default function Cards() {
     );
   }
 
-  const debts = cards.map(toDebtCard);
   const totalOwed = cards.reduce((s, k) => s + k.owed, 0);
   const totalStatement = cards.reduce((s, k) => s + (k.statement_balance ?? 0), 0);
   const totalLimit = cards.reduce((s, k) => s + (k.credit_limit ?? 0), 0);
-  const totalMin = debts.reduce((s, d) => s + minimumFor(d), 0);
-  const budget = data.budget ?? Math.ceil(totalMin / 10) * 10;
-  const plan = allocatePayments(debts, budget, strategy);
   const sim = simulatePayoff(debts, budget, strategy);
   const minOnly = simulatePayoff(debts, totalMin, strategy);
   const paidTotal = [...paidThisCycle.values()].reduce((a, b) => a + b, 0);
@@ -93,7 +78,7 @@ export default function Cards() {
         <Card>
           <Title right={<Button title="Edit" variant="ghost" onPress={() => setEditingBudget(true)} />}>Payoff plan</Title>
           <Row style={{ marginBottom: 12 }}>
-            <Stat label="Monthly payment" amount={budget} sub={data.budget ? undefined : 'Default: minimums'} />
+            <Stat label="Monthly payment" amount={budget} sub={data.budgetIsDefault ? 'Default: minimums' : undefined} />
             <View style={{ flex: 1 }}>
               <Label>Debt-free</Label>
               <Body style={{ fontSize: 20, fontWeight: '700' }}>{debtFreeDate ?? 'Never'}</Body>
@@ -161,7 +146,7 @@ export default function Cards() {
               </View>
             );
           })}
-          {plan.leftover > 0 && <Label>{formatMoney(plan.leftover)} of your monthly payment isn't needed — all cards would be paid off.</Label>}
+          {plan.leftover > 0 && <Label>{formatMoney(plan.leftover)} of your monthly payment isn’t needed — all cards would be paid off.</Label>}
         </Card>
       )}
 
