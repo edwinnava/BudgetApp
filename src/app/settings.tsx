@@ -9,6 +9,8 @@ import { useSync } from '../sync/useSync';
 import { notifyChange } from '../db/events';
 import { loadDemoData } from '../db/demo';
 import { ReminderSettingsCard } from '../components/ReminderSettingsCard';
+import { PlaidSettingsCard } from '../components/PlaidSettingsCard';
+import { forgetAllPlaidItems } from '../sync/plaid';
 import { Body, Button, Card, Divider, Field, Label, ListItem, Money, Screen, Title } from '../components/ui';
 import { useColors } from '../components/theme';
 
@@ -36,8 +38,10 @@ export default function Settings() {
 
   return (
     <Screen>
+      <PlaidSettingsCard />
+
       <Card>
-        <Title>Bank connection (SimpleFIN)</Title>
+        <Title>Bank connection (SimpleFIN, optional)</Title>
         {connected ? (
           <>
             <Body>Connected ✓</Body>
@@ -60,8 +64,8 @@ export default function Settings() {
         ) : (
           <>
             <Label style={{ marginBottom: 10 }}>
-              SimpleFIN Bridge connects to 16,000+ banks and card issuers and lets this app read balances and transactions
-              directly — no server in between. Connect your institutions on the SimpleFIN site, create a setup token, and paste it below.
+              An alternative for any bank Plaid can’t reach ($15/year, no server needed). Connect institutions on the SimpleFIN
+              site, create a setup token, and paste it below.
             </Label>
             <Button
               title="Open SimpleFIN Bridge"
@@ -123,7 +127,7 @@ export default function Settings() {
           onPress={() =>
             Alert.alert('Erase everything?', 'Deletes all accounts, transactions, bills, budgets and card data on this device.', [
               { text: 'Cancel', style: 'cancel' },
-              { text: 'Erase', style: 'destructive', onPress: async () => { await disconnectSimpleFin(); await resetAllData(db); } },
+              { text: 'Erase', style: 'destructive', onPress: async () => { await disconnectSimpleFin(); await forgetAllPlaidItems(db); await resetAllData(db); } },
             ])
           }
         />

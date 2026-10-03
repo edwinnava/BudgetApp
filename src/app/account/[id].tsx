@@ -69,7 +69,7 @@ function AccountForm({ account }: { account: Account }) {
         onPress={() =>
           Alert.alert(
             'Delete account?',
-            account.source === 'simplefin'
+            account.source !== 'manual'
               ? 'It will come back on the next sync. Hide it instead to keep it out of the way.'
               : 'Its transactions and payments will be deleted too.',
             [

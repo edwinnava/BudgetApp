@@ -117,9 +117,10 @@ export interface CategorizeInput {
 
 /**
  * Picks a category name for a new transaction. User rules win, then special cases
- * (card payments, transfers), then keyword matches.
+ * (card payments), then the bank's own category (`hint`, e.g. from Plaid), then keyword matches.
+ * Keyword "Subscriptions" beats the hint since banks file streaming services under entertainment.
  */
-export function guessCategory(input: CategorizeInput, rules: Rule[] = []): string | null {
+export function guessCategory(input: CategorizeInput, rules: Rule[] = [], hint: string | null = null): string | null {
   const desc = input.description.toUpperCase();
   const key = normalizeMerchant(input.description);
   for (const r of rules) {
@@ -127,10 +128,17 @@ export function guessCategory(input: CategorizeInput, rules: Rule[] = []): strin
   }
   if (input.accountType === 'credit' && input.amount > 0 && isPaymentToCard(desc)) return CARD_PAYMENT_CATEGORY;
   if (input.accountType !== 'credit' && input.amount < 0 && looksLikeCardBillPayment(desc)) return CARD_PAYMENT_CATEGORY;
+  let keyword: string | null = null;
   for (const c of DEFAULT_CATEGORIES) {
     if (c.kind === 'income' && input.amount < 0) continue;
-    if (c.keywords.some((k) => matchesKeyword(desc, k))) return c.name;
+    if (c.keywords.some((k) => matchesKeyword(desc, k))) {
+      keyword = c.name;
+      break;
+    }
   }
+  if (keyword === 'Subscriptions') return keyword;
+  if (hint) return hint;
+  if (keyword) return keyword;
   if (input.amount > 0 && input.accountType !== 'credit') return INCOME_CATEGORY;
   return null;
 }

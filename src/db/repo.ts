@@ -15,7 +15,7 @@ export interface Account {
   balance: number;
   available: number | null;
   balance_date: string | null;
-  source: 'simplefin' | 'manual';
+  source: 'simplefin' | 'plaid' | 'manual';
   hidden: number;
 }
 
@@ -170,6 +170,17 @@ export async function saveCardDetails(db: SQLiteDatabase, d: CardDetails): Promi
     d.account_id, d.statement_balance, d.statement_day, d.due_day, d.min_payment, d.apr, d.credit_limit,
   );
   notifyChange();
+}
+
+/** Updates only the provided card fields (creating the row if needed). */
+export async function mergeCardDetails(db: SQLiteDatabase, accountId: string, patch: Partial<Omit<CardDetails, 'account_id'>>): Promise<void> {
+  await db.runAsync('INSERT OR IGNORE INTO card_details (account_id) VALUES (?)', accountId);
+  const keys = (Object.keys(patch) as (keyof typeof patch)[]).filter((k) => patch[k] !== undefined);
+  if (!keys.length) return;
+  await db.runAsync(
+    `UPDATE card_details SET ${keys.map((k) => `${k} = ?`).join(', ')} WHERE account_id = ?`,
+    ...keys.map((k) => patch[k] as number | null), accountId,
+  );
 }
 
 export function listCardPayments(db: SQLiteDatabase, cardId?: string, since?: ISODate): Promise<CardPayment[]> {
@@ -443,7 +454,8 @@ export const cardPaymentCategoryId = (db: SQLiteDatabase) => getCategoryIdByName
 export async function resetAllData(db: SQLiteDatabase): Promise<void> {
   await db.execAsync(`
     DELETE FROM card_payments; DELETE FROM transactions; DELETE FROM card_details; DELETE FROM accounts;
-    DELETE FROM recurring; DELETE FROM dismissed_recurring; DELETE FROM budgets; DELETE FROM rules; DELETE FROM settings;`);
+    DELETE FROM recurring; DELETE FROM dismissed_recurring; DELETE FROM budgets; DELETE FROM rules; DELETE FROM settings;
+    DELETE FROM plaid_items;`);
   notifyChange();
 }
 

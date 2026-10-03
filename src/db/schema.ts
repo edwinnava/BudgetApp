@@ -86,6 +86,16 @@ const MIGRATIONS: string[] = [
 
   CREATE TABLE settings (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL);
   `,
+  `
+  -- Linked Plaid logins. The access token itself lives in the device keychain/keystore.
+  CREATE TABLE plaid_items (
+    item_id TEXT PRIMARY KEY NOT NULL,
+    institution TEXT NOT NULL DEFAULT '',
+    cursor TEXT,
+    last_sync TEXT,
+    error TEXT
+  );
+  `,
 ];
 
 export async function migrate(db: SQLiteDatabase): Promise<void> {

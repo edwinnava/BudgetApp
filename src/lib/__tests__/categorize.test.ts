@@ -33,6 +33,13 @@ describe('guessCategory', () => {
       guessCategory({ description: 'SHELL OIL', amount: -40, accountType: 'credit' }, [{ pattern: 'SHELL OIL', categoryName: 'Other' }]),
     ).toBe('Other');
   });
+  it('uses the bank category hint after rules and card payments', () => {
+    const t = { description: 'SOME DINER', amount: -20, accountType: 'credit' };
+    expect(guessCategory(t, [], 'Dining')).toBe('Dining');
+    expect(guessCategory({ ...t, description: 'SHELL OIL' }, [], 'Shopping')).toBe('Shopping');
+    expect(guessCategory({ ...t, description: 'NETFLIX.COM' }, [], 'Entertainment')).toBe('Subscriptions');
+    expect(guessCategory({ ...t, description: 'SOME DINER' }, [{ pattern: 'SOME DINER', categoryName: 'Other' }], 'Dining')).toBe('Other');
+  });
   it('treats deposits as income', () => {
     expect(guessCategory({ description: 'ACME CORP PAYROLL', amount: 2000, accountType: 'checking' })).toBe('Income');
     expect(guessCategory({ description: 'RANDOM', amount: 20, accountType: 'checking' })).toBe('Income');

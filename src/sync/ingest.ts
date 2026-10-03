@@ -13,6 +13,10 @@ export interface IncomingTxn {
   amount: number;
   description: string;
   pending: boolean;
+  /** The bank's own category, mapped to an app category name. */
+  hint?: string | null;
+  /** A pending transaction this one replaces; its category and notes carry over. */
+  inheritFrom?: string | null;
 }
 
 /**
@@ -44,12 +48,20 @@ export async function ingestTransactions(
           t.date, t.amount, t.description, merchantKey, t.pending ? 1 : 0, t.id,
         );
       } else {
-        const name = guessCategory({ description: t.description, amount: t.amount, accountType: account.type }, rules);
-        categoryId = name ? (idByName.get(name) ?? null) : null;
+        const parent = t.inheritFrom
+          ? await db.getFirstAsync<{ category_id: number | null; notes: string }>(
+              'SELECT category_id, notes FROM transactions WHERE id = ?', t.inheritFrom,
+            )
+          : null;
+        if (parent?.category_id != null) categoryId = parent.category_id;
+        else {
+          const name = guessCategory({ description: t.description, amount: t.amount, accountType: account.type }, rules, t.hint);
+          categoryId = name ? (idByName.get(name) ?? null) : null;
+        }
         await db.runAsync(
-          `INSERT INTO transactions (id, account_id, date, amount, description, merchant_key, category_id, pending)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          t.id, account.id, t.date, t.amount, t.description, merchantKey, categoryId, t.pending ? 1 : 0,
+          `INSERT INTO transactions (id, account_id, date, amount, description, merchant_key, category_id, pending, notes)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          t.id, account.id, t.date, t.amount, t.description, merchantKey, categoryId, t.pending ? 1 : 0, parent?.notes ?? '',
         );
         added++;
       }

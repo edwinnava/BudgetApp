@@ -1,0 +1,10 @@
+name = "budgetapp-plaid"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+
+[vars]
+PLAID_ENV = "production"
+ANDROID_PACKAGE_NAME = "com.edwinnava.budgetapp"
+
+# Secrets (set with `npx wrangler secret put <NAME>`, never commit them):
+#   PLAID_CLIENT_ID, PLAID_SECRET, APP_SECRET
