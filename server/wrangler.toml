@@ -1,6 +1,8 @@
 name = "budgetapp-plaid"
 main = "src/index.ts"
 compatibility_date = "2026-09-01"
+# Only the main workers.dev URL is needed; skip per-version preview URLs.
+preview_urls = false
 
 [vars]
 PLAID_ENV = "production"
