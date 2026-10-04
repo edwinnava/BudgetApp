@@ -28,7 +28,15 @@
       "expo-sqlite",
       "expo-secure-store",
       "expo-notifications",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 25
+          }
+        }
+      ]
     ],
     "scheme": "budgetapp"
   }
