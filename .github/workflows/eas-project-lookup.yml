@@ -19,5 +19,7 @@ jobs:
       - name: Look up project
         run: |
           node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync('app.json'));delete j.expo.extra.eas.projectId;delete j.expo.updates.url;fs.writeFileSync('app.json',JSON.stringify(j,null,2))"
+          eas init --non-interactive --force || true
+          grep -n projectId app.json || true
           eas project:info || true
           eas build:list --platform android --limit 3 --non-interactive --json || true
