@@ -1,0 +1,23 @@
+# One-off: find the EAS project ID for @edwinnava/budgetapp (the project holding the Android keystore).
+name: EAS project lookup
+on: workflow_dispatch
+jobs:
+  lookup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - uses: expo/expo-github-action@main
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Look up project
+        run: |
+          node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync('app.json'));delete j.expo.extra.eas.projectId;delete j.expo.updates.url;fs.writeFileSync('app.json',JSON.stringify(j,null,2))"
+          eas project:info || true
+          eas build:list --platform android --limit 3 --non-interactive --json || true
