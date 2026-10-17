@@ -38,6 +38,20 @@
         }
       ]
     ],
-    "scheme": "budgetapp"
+    "scheme": "budgetapp",
+    "owner": "edwinnava",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/EXPO_PROJECT_ID",
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
+    "extra": {
+      "eas": {
+        "projectId": "EXPO_PROJECT_ID"
+      }
+    }
   }
 }

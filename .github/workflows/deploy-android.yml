@@ -1,0 +1,64 @@
+# Ships every push to the app's branch to your phone, no computer needed:
+#  - JavaScript-only changes are published as an over-the-air update (EAS Update);
+#    the app downloads it on launch and applies it on the next launch.
+#  - Changes that affect native code (new native libraries, app.json native settings)
+#    change the project "fingerprint", so a new APK is built on EAS; install it from expo.dev.
+# Requires the EXPO_TOKEN repository secret (an access token from expo.dev).
+name: Deploy Android
+
+on:
+  push:
+    branches: [ccr-4467735e-2bim69]
+    paths-ignore: ['server/**', '**.md']
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-android
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check for EXPO_TOKEN
+        id: token
+        run: |
+          if [ -z "${{ secrets.EXPO_TOKEN }}" ]; then
+            echo "EXPO_TOKEN secret is not set; skipping deploy." >> "$GITHUB_STEP_SUMMARY"
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.token.outputs.present == 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.token.outputs.present == 'true'
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        if: steps.token.outputs.present == 'true'
+        run: npm ci
+
+      - name: Test
+        if: steps.token.outputs.present == 'true'
+        run: npm test
+
+      - uses: expo/expo-github-action@main
+        if: steps.token.outputs.present == 'true'
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build or update
+        if: steps.token.outputs.present == 'true'
+        uses: expo/expo-github-action/continuous-deploy-fingerprint@main
+        with:
+          profile: preview
+          branch: preview
+          platform: android

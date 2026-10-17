@@ -68,6 +68,15 @@ npx expo start
 
 Install **Expo Go** on your phone and scan the QR code. Everything works in Expo Go except linking banks with Plaid, which needs the installed build below.
 
+### Updating without a computer
+
+Pushes to the app's branch deploy automatically through GitHub Actions (`.github/workflows/deploy-android.yml`):
+
+- **JavaScript-only changes** are published as an over-the-air update. The app downloads it on launch and applies it the next time it opens; Settings → App updates applies it immediately.
+- **Native changes** (new native libraries or native settings in `app.json`) change the project fingerprint, so the workflow builds a new APK on EAS instead. Open the build on expo.dev from your phone and install it over the old one; your data is kept.
+
+One-time setup: create an access token at expo.dev (Account settings → Access tokens) and add it to this repo as the Actions secret `EXPO_TOKEN`.
+
 ### Installing it as a real app
 
 Use [EAS Build](https://docs.expo.dev/build/introduction/) (cloud builds, no Xcode or Android Studio needed):

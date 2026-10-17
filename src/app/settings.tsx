@@ -10,6 +10,7 @@ import { notifyChange } from '../db/events';
 import { loadDemoData } from '../db/demo';
 import { ReminderSettingsCard } from '../components/ReminderSettingsCard';
 import { PlaidSettingsCard } from '../components/PlaidSettingsCard';
+import { AppUpdateCard } from '../components/AppUpdateCard';
 import { forgetAllPlaidItems } from '../sync/plaid';
 import { Body, Button, Card, Divider, Field, Label, ListItem, Money, Screen, Title } from '../components/ui';
 import { useColors } from '../components/theme';
@@ -114,6 +115,8 @@ export default function Settings() {
         <Label style={{ marginBottom: 10 }}>Most banks let you download transactions as CSV. Import them into any account.</Label>
         <Button title="Import CSV file" icon="document-text" variant="secondary" onPress={() => router.push('/import')} />
       </Card>
+
+      <AppUpdateCard />
 
       <Card>
         <Title>Data</Title>
