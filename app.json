@@ -44,13 +44,13 @@
       "policy": "fingerprint"
     },
     "updates": {
-      "url": "https://u.expo.dev/EXPO_PROJECT_ID",
+      "url": "https://u.expo.dev/c01fa930-332c-43c4-85a9-aebd699dde77",
       "checkAutomatically": "ON_LOAD",
       "fallbackToCacheTimeout": 0
     },
     "extra": {
       "eas": {
-        "projectId": "EXPO_PROJECT_ID"
+        "projectId": "c01fa930-332c-43c4-85a9-aebd699dde77"
       }
     }
   }
