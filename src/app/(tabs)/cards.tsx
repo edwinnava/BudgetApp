@@ -40,7 +40,7 @@ export default function Cards() {
         <Empty
           icon="card"
           title="No credit cards yet"
-          message="Synced accounts that look like cards show up here automatically. You can also add a card manually or mark an account as a credit card."
+          message="Linked cards show up here automatically. For a card you can't link, add it manually with its balance, statement, due date, minimum and APR."
           action={<Button title="Add a card" icon="add" onPress={() => router.push({ pathname: '/account/new', params: { type: 'credit' } })} />}
         />
       </Screen>
@@ -58,6 +58,12 @@ export default function Cards() {
 
   return (
     <Screen>
+      <Button
+        title="Add a card manually"
+        icon="add"
+        variant="secondary"
+        onPress={() => router.push({ pathname: '/account/new', params: { type: 'credit' } })}
+      />
       <Card>
         <Row style={{ marginBottom: 10 }}>
           <Stat label="Current balance" amount={totalOwed} color={totalOwed > 0 ? c.negative : undefined} />

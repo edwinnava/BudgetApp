@@ -92,7 +92,7 @@ export function PlaidSettingsCard() {
           <Button title="Link a bank or card" icon="add" loading={busy === 'link'} onPress={() => link()} style={{ marginTop: 6 }} />
           <Body style={{ fontSize: 12, marginTop: 8, color: c.muted }}>
             Card statement balance, minimum payment, due date and APR are filled in automatically when your bank provides them.
-            Free Trial plan: up to 10 linked logins.
+            Free Trial plan: up to 10 linked logins. Can’t link a card? Add it manually from the Cards tab.
           </Body>
           <Button title="Change server" variant="ghost" onPress={() => { setUrl(data.server!.url); setEditingServer(true); }} />
         </>

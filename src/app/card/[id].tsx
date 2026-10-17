@@ -199,7 +199,13 @@ export default function CardDetail() {
 
       <Card>
         <Title>Payments</Title>
-        {payments.length === 0 && <Label>No payments yet. Synced payments appear automatically.</Label>}
+        {payments.length === 0 && (
+          <Label>
+            {card.source === 'manual'
+              ? 'No payments yet. Tap “Log a payment” whenever you pay this card.'
+              : 'No payments yet. Synced payments appear automatically.'}
+          </Label>
+        )}
         {payments.slice(0, 24).map((p, i) => (
           <View key={p.id}>
             {i > 0 && <Divider />}

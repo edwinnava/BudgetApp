@@ -184,7 +184,7 @@ export default function Payday() {
       <Card>
         <SectionLabel>Card statement balances</SectionLabel>
         <Label style={{ marginBottom: 8, fontSize: 12 }}>Filled in from your synced cards. Edit for this payday; leave statement blank if paid off.</Label>
-        {cards.length === 0 && <Label>No credit cards yet. Link a card or add one in Settings.</Label>}
+        {cards.length === 0 && <Label>No credit cards yet. Link one in Settings or add it manually below.</Label>}
         {cards.length > 0 && (
           <Row style={{ marginBottom: 4 }}>
             <View style={{ flex: 1 }} />
@@ -220,6 +220,13 @@ export default function Payday() {
             />
           </Row>
         ))}
+        <Button
+          title="Add a card manually"
+          icon="add"
+          variant="secondary"
+          style={{ marginTop: 4 }}
+          onPress={() => router.push({ pathname: '/account/new', params: { type: 'credit' } })}
+        />
         {(Object.keys(inputs.statement).length > 0 || Object.keys(inputs.current).length > 0) && (
           <Button title="Use synced balances" variant="ghost" onPress={() => update({ statement: {}, current: {} })} />
         )}
