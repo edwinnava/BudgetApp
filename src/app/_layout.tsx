@@ -24,6 +24,7 @@ export default function RootLayout() {
             <Stack.Screen name="account/new" options={{ title: 'Add Account', presentation: 'modal' }} />
             <Stack.Screen name="settings" options={{ title: 'Accounts & Settings' }} />
             <Stack.Screen name="import" options={{ title: 'Import CSV' }} />
+            <Stack.Screen name="payday/tracker" options={{ title: 'Debt Tracker' }} />
           </Stack>
           <StatusBar style="auto" />
         </SQLiteProvider>

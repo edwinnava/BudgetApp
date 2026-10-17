@@ -96,6 +96,14 @@ const MIGRATIONS: string[] = [
     error TEXT
   );
   `,
+  `
+  -- Saved payday splits for the Debt Tracker. data is a JSON PaydaySnapshot.
+  CREATE TABLE payday_snapshots (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at INTEGER NOT NULL,
+    data TEXT NOT NULL
+  );
+  `,
 ];
 
 export async function migrate(db: SQLiteDatabase): Promise<void> {

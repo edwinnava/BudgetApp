@@ -13,6 +13,15 @@ const light = {
   warning: '#d97706',
   track: '#e5e7eb',
   input: '#f9fafb',
+  amber: '#EF9F27',
+  redBg: '#FCEBEB',
+  redText: '#A32D2D',
+  amberBg: '#FAEEDA',
+  amberText: '#854F0B',
+  greenBg: '#EAF3DE',
+  greenText: '#3B6D11',
+  green: '#1D9E75',
+  red: '#E24B4A',
 };
 
 const dark: typeof light = {
@@ -28,6 +37,15 @@ const dark: typeof light = {
   warning: '#fbbf24',
   track: '#262b36',
   input: '#0f1218',
+  amber: '#EF9F27',
+  redBg: '#2e0a0a',
+  redText: '#F09595',
+  amberBg: '#2e1e06',
+  amberText: '#FAC775',
+  greenBg: '#0a2e1a',
+  greenText: '#5DCAA5',
+  green: '#1D9E75',
+  red: '#E24B4A',
 };
 
 export type Colors = typeof light;

@@ -28,6 +28,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="recurring" options={tab('Recurring', 'repeat')} />
       <Tabs.Screen name="budget" options={tab('Budget', 'pie-chart')} />
       <Tabs.Screen name="cards" options={tab('Cards', 'card')} />
+      <Tabs.Screen name="payday" options={tab('Payday', 'wallet')} />
     </Tabs>
   );
 }

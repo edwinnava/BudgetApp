@@ -2,6 +2,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import { CARD_PAYMENT_CATEGORY, normalizeMerchant, CategoryKind } from '../lib/categorize';
 import { ISODate, monthRange, today } from '../lib/dates';
 import type { Frequency } from '../lib/recurring';
+import type { PaydaySnapshot } from '../lib/payday';
 import { notifyChange } from './events';
 
 export type AccountType = 'checking' | 'savings' | 'credit' | 'loan' | 'investment';
@@ -455,7 +456,7 @@ export async function resetAllData(db: SQLiteDatabase): Promise<void> {
   await db.execAsync(`
     DELETE FROM card_payments; DELETE FROM transactions; DELETE FROM card_details; DELETE FROM accounts;
     DELETE FROM recurring; DELETE FROM dismissed_recurring; DELETE FROM budgets; DELETE FROM rules; DELETE FROM settings;
-    DELETE FROM plaid_items;`);
+    DELETE FROM plaid_items; DELETE FROM payday_snapshots;`);
   notifyChange();
 }
 
@@ -475,4 +476,26 @@ export function cardPaymentsByMonth(db: SQLiteDatabase, since: ISODate) {
      GROUP BY month ORDER BY month DESC`,
     since,
   );
+}
+
+// ---------- payday ----------
+
+/** Saves a setting without notifying listeners (for draft form inputs typed often). */
+export async function setSettingQuiet(db: SQLiteDatabase, key: string, value: string): Promise<void> {
+  await db.runAsync('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value', key, value);
+}
+
+export async function listPaydaySnapshots(db: SQLiteDatabase): Promise<PaydaySnapshot[]> {
+  const rows = await db.getAllAsync<{ id: number; data: string }>('SELECT id, data FROM payday_snapshots ORDER BY created_at DESC, id DESC');
+  return rows.map((r) => ({ ...(JSON.parse(r.data) as PaydaySnapshot), id: r.id }));
+}
+
+export async function addPaydaySnapshot(db: SQLiteDatabase, s: PaydaySnapshot): Promise<void> {
+  await db.runAsync('INSERT INTO payday_snapshots (created_at, data) VALUES (?, ?)', s.createdAt, JSON.stringify(s));
+  notifyChange();
+}
+
+export async function deletePaydaySnapshot(db: SQLiteDatabase, id: number): Promise<void> {
+  await db.runAsync('DELETE FROM payday_snapshots WHERE id = ?', id);
+  notifyChange();
 }
